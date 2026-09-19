@@ -24,8 +24,14 @@ then pipe the model into `DiscreteCompoundingModel()` with `|>` and return it.
 The supplied yield already uses the nominal-yield convention needed by the model.
 """
 function build_bill(terms::NamedTuple)::MyUSTreasuryZeroCouponBondModel
-    # TODO: Build the bill from the supplied terms, price it, and return the model.
-    throw("build_bill is not implemented yet");
+    bill = build(MyUSTreasuryZeroCouponBondModel, (
+        par=terms.bill_par,
+        rate=terms.bill_yield,
+        T=terms.bill_maturity,
+        n=Int(terms.bill_compounding_frequency),
+    )) |> DiscreteCompoundingModel();
+
+    return bill;
 end
 
 """
@@ -49,8 +55,15 @@ Julia's `λ` can be entered by typing `\\lambda` and pressing Tab.
 The package constructs the cash-flow schedule and computes the price.
 """
 function build_note(terms::NamedTuple)::MyUSTreasuryCouponSecurityModel
-    # TODO: Build the note from the supplied terms, price it, and return the model.
-    throw("build_note is not implemented yet");
+    note = build(MyUSTreasuryCouponSecurityModel, (
+        par=terms.note_par,
+        rate=terms.note_yield,
+        coupon=terms.note_coupon_rate,
+        T=terms.note_maturity,
+        λ=Int(terms.note_compounding_frequency),
+    )) |> DiscreteCompoundingModel();
+
+    return note;
 end
 
 """
@@ -71,8 +84,11 @@ All inputs use decimal annual rates. The return value is the complete priced mod
 """
 function reprice_note(note::MyUSTreasuryCouponSecurityModel,
     yield_change::Real)::MyUSTreasuryCouponSecurityModel
-    # TODO: Copy the note, add the yield change, reprice the copy, and return it.
-    throw("reprice_note is not implemented yet");
+    changed_note = deepcopy(note);
+    changed_note.rate += yield_change;
+    changed_note = changed_note |> DiscreteCompoundingModel();
+
+    return changed_note;
 end
 
 """
@@ -102,6 +118,12 @@ or calibrated probabilities. No simulation or statistical routines need to be
 implemented here. Invalid terms or sequences are reported by the supplied helper.
 """
 function compare_strategies(market::NamedTuple, terms::NamedTuple)::Vector{NamedTuple}
-    # TODO: Pass the four strategy vectors to evaluate_sequences and return its results.
-    throw("compare_strategies is not implemented yet");
+    choices = [
+        [7],
+        [2, 5],
+        [5, 2],
+        [1, 1, 1, 1, 1, 1, 1],
+    ];
+
+    return evaluate_sequences(market, terms; sequences=choices);
 end
